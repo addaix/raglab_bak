@@ -40,7 +40,9 @@ DocKey = str
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 embeddings_model = OpenAIEmbeddings(api_key=OPENAI_API_KEY)
 chat = ChatOpenAI(
-    temperature=0, model_name="gpt-4", openai_api_key=os.getenv("OPENAI_API_KEY")  # type: ignore
+    temperature=0,
+    model_name="gpt-4",
+    openai_api_key=os.getenv("OPENAI_API_KEY"),  # type: ignore
 ).predict
 
 docs = {

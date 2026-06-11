@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 
 
 class ChromaClient:
-
     def __init__(self):
         load_dotenv()
         chroma_key = os.getenv("CHROMA_KEY")

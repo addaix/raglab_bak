@@ -1,1 +1,1 @@
-"""Web services """
+"""Web services"""

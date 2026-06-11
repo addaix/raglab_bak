@@ -34,7 +34,6 @@ def get_user_id_by_token(token):
 
 
 class PromptPilote:
-
     def list(token: str, db: Session = get_db()):
         user_id = get_user_id_by_token(token)
 

@@ -13,8 +13,8 @@ from .types import SegmentMapping, SegmentKey, Vector, VectorMapping
 @register_segmenter("simple_sentence")
 def simple_sentence_segmenter(text: str) -> list[str]:
     # Very small heuristic splitter
-    parts = [p.strip() for p in text.replace("\n", " ").split('.') if p.strip()]
-    return [p + '.' for p in parts]
+    parts = [p.strip() for p in text.replace("\n", " ").split(".") if p.strip()]
+    return [p + "." for p in parts]
 
 
 def _cosine(a: Sequence[float], b: Sequence[float]) -> float:
@@ -47,9 +47,7 @@ class MemoryVectorStore:
         self.vectors: dict[SegmentKey, Vector] = {}
         self.embedder = embedder
 
-    def add_batch(
-        self, segments: SegmentMapping, vectors: VectorMapping | None = None
-    ):
+    def add_batch(self, segments: SegmentMapping, vectors: VectorMapping | None = None):
         self.segments.update(segments)
         if vectors is not None:
             self.vectors.update(vectors)
@@ -62,9 +60,7 @@ class MemoryVectorStore:
                 for k, v in zip(segments.keys(), computed):
                     self.vectors[k] = v
 
-    def search(
-        self, query: str | Vector, k: int = 5
-    ) -> list[tuple[SegmentKey, float]]:
+    def search(self, query: str | Vector, k: int = 5) -> list[tuple[SegmentKey, float]]:
         if not self.vectors:
             return []
         if isinstance(query, str):

@@ -1,4 +1,4 @@
-""" This module contains functions agregated in a DAG that does :
+"""This module contains functions agregated in a DAG that does :
 - extracts sets of words in a text
 - match the sets of words with a set of keywords
 - find associations between sets of words

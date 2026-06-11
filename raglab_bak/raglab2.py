@@ -1,5 +1,5 @@
 """
-Taking the use case implemented by example: 
+Taking the use case implemented by example:
     https://python.langchain.com/docs/expression_language/cookbook/retrieval
 I created a class that encapsulates the logic of the example, and added some
 features to it. The class is called Raglab2.
@@ -129,7 +129,6 @@ class Raglab2:
 
 
 class RaglabSession:
-
     def __init__(self, app: Raglab2):
         self.raglab_app = app
 
@@ -138,7 +137,6 @@ class RaglabSession:
 
 
 class RaglabSessionBuilder:
-
     def build(
         user: str,
         name: str,

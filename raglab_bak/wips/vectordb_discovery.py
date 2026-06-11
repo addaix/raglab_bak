@@ -40,8 +40,10 @@ class VectorDbStatus:
     def to_dict(self):
         """Returns a dict containing the attributes"""
 
-        return {attr_name: getattr(self, attr_name) for attr_name in self.__dataclass_fields__}
-
+        return {
+            attr_name: getattr(self, attr_name)
+            for attr_name in self.__dataclass_fields__
+        }
 
 
 @dataclass
@@ -262,7 +264,7 @@ class VectorDbDiscovery:
     def _check_package(self, package_name: str) -> bool:
         """Check if a package is installed."""
         try:
-            importlib.import_module(package_name.replace('-', '_'))
+            importlib.import_module(package_name.replace("-", "_"))
             return True
         except ImportError:
             return False
@@ -287,7 +289,7 @@ class VectorDbDiscovery:
             import faiss
 
             metadata["version"] = (
-                faiss.__version__ if hasattr(faiss, '__version__') else "unknown"
+                faiss.__version__ if hasattr(faiss, "__version__") else "unknown"
             )
             # Check for GPU support
             try:
@@ -306,7 +308,7 @@ class VectorDbDiscovery:
             import chromadb
 
             metadata["version"] = (
-                chromadb.__version__ if hasattr(chromadb, '__version__') else "unknown"
+                chromadb.__version__ if hasattr(chromadb, "__version__") else "unknown"
             )
         except ImportError:
             pass
@@ -442,7 +444,7 @@ def get_available_vectordbs(
         >>> available = get_available_vectordbs()
         >>> ready_dbs = {name: status for name, status in available.items() if status.is_ready}
         >>> print(f"Found {len(ready_dbs)} ready databases")  # doctest: +SKIP
-        
+
     """
     discovery = VectorDbDiscovery()
     return discovery.discover_available(check_services=check_services)

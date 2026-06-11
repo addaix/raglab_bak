@@ -17,7 +17,7 @@ Usage:
     From Python:
         from vectordb_manager import help_me_install, discover_vectordbs
         help_me_install("qdrant")
-        
+
     From command line:
         python vectordb_manager.py                    # Show discovery report
         python vectordb_manager.py qdrant            # Full installation for qdrant
@@ -40,12 +40,14 @@ from pathlib import Path
 
 try:
     import argh
+
     HAS_ARGH = True
 except ImportError:
     HAS_ARGH = False
 
 try:
     import pyperclip
+
     HAS_CLIPBOARD = True
 except ImportError:
     HAS_CLIPBOARD = False
@@ -53,6 +55,7 @@ except ImportError:
 
 class OSType(Enum):
     """Supported operating system types."""
+
     MACOS = "macos"
     LINUX = "linux"
     WINDOWS = "windows"
@@ -61,6 +64,7 @@ class OSType(Enum):
 @dataclass
 class InstallStep:
     """Single installation step with description and commands."""
+
     description: str
     commands: list[str]
     optional: bool = False
@@ -71,11 +75,11 @@ class InstallStep:
 class VectorDbConfig:
     """
     Complete configuration for a vector database including discovery and installation.
-    
+
     This class combines functionality for checking status and generating installation
     instructions for vector databases. Each database should have a unique name that
     is a valid Python identifier (lowercase with underscores).
-    
+
     Attributes:
         name: Valid Python identifier for the database (e.g., 'qdrant', 'mongodb_atlas')
         aliases: Alternative names that can be used to reference this database
@@ -94,34 +98,35 @@ class VectorDbConfig:
         service_check: Custom function to check if service is running
         metadata_collector: Custom function to collect additional metadata
     """
+
     # Basic identification
     name: str  # Must be a valid Python identifier (e.g., 'qdrant', 'mongodb_atlas')
     aliases: set[str] = field(default_factory=set)  # Alternative names
-    
+
     # LangChain integration
     langchain_module: str = ""
     pip_packages: list[str] = field(default_factory=list)
     system_dependencies: list[str] = field(default_factory=list)
-    
+
     # URLs and documentation
     installation_url: str = ""
     documentation_url: str = ""
-    
+
     # Installation steps by OS
     setup_steps: dict[OSType, list[InstallStep]] = field(default_factory=dict)
     environment_vars: dict[str, str] = field(default_factory=dict)
     post_install_notes: list[str] = field(default_factory=list)
-    
+
     # Service configuration
     default_port: int | None = None
     default_host: str = "localhost"
     cloud_service: bool = False
     embedded_mode: bool = False
-    
+
     # Custom check functions
     service_check: Callable[[], str | bool] | None = None
     metadata_collector: Callable[[], dict[str, Any]] | None = None
-    
+
     def check_langchain_available(self) -> bool:
         """Check if the LangChain integration module is available."""
         if not self.langchain_module:
@@ -131,43 +136,43 @@ class VectorDbConfig:
             return True
         except ImportError:
             return False
-    
+
     def check_dependencies_installed(self) -> tuple[bool, dict[str, str], list[str]]:
         """
         Check if Python dependencies are installed with version info.
-        
+
         Returns:
             Tuple of (all_met, installed_versions, missing_packages)
             installed_versions is a dict mapping package name to version string
         """
         installed_versions = {}
         missing = []
-        
+
         for package in self.pip_packages:
             # Handle package names with extras like package[extra]
-            base_package = package.split('[')[0]
-            
+            base_package = package.split("[")[0]
+
             try:
                 # Try to get version information
                 version = importlib.metadata.version(base_package)
                 installed_versions[package] = version
             except importlib.metadata.PackageNotFoundError:
                 # Try alternative module import for packages with different import names
-                module_name = base_package.replace('-', '_')
+                module_name = base_package.replace("-", "_")
                 try:
                     mod = importlib.import_module(module_name)
                     # Try to get version from module
-                    version = getattr(mod, '__version__', 'unknown')
+                    version = getattr(mod, "__version__", "unknown")
                     installed_versions[package] = version
                 except ImportError:
                     missing.append(package)
-        
+
         return (len(missing) == 0, installed_versions, missing)
-    
+
     def check_service_running(self) -> str | bool:
         """
         Check if the vector database service is running.
-        
+
         Returns:
             URI string if service is accessible (e.g., "http://localhost:6333")
             False if service is not accessible
@@ -175,7 +180,7 @@ class VectorDbConfig:
         # Use custom service check if provided
         if self.service_check:
             return self.service_check()
-        
+
         # For cloud services, check environment variables
         if self.cloud_service:
             if self.name == "mongodb_atlas":
@@ -184,45 +189,45 @@ class VectorDbConfig:
             elif self.name == "pinecone":
                 api_key = os.getenv("PINECONE_API_KEY")
                 return "pinecone.io" if api_key else False
-        
+
         # For embedded databases, always return True if dependencies are met
         if self.embedded_mode:
             deps_met, _, _ = self.check_dependencies_installed()
             return f"embedded://{self.name}" if deps_met else False
-        
+
         # Default: check if service is running on default port
         if self.default_port:
             if self._check_port(self.default_host, self.default_port):
                 return f"http://{self.default_host}:{self.default_port}"
-        
+
         return False
-    
+
     def get_metadata(self) -> dict[str, Any]:
         """Collect metadata about the current installation."""
         metadata = {
             "type": "cloud" if self.cloud_service else "local",
             "embedded_supported": self.embedded_mode,
         }
-        
+
         if self.default_port:
             metadata["default_port"] = self.default_port
-        
+
         # Use custom metadata collector if provided
         if self.metadata_collector:
             try:
                 metadata.update(self.metadata_collector())
             except Exception as e:
                 metadata["metadata_error"] = str(e)
-        
+
         return metadata
-    
+
     def print_pip_install(self) -> str:
         """Generate pip install instructions with version checking."""
         if not self.pip_packages:
             return "# No Python packages required"
-        
+
         deps_met, installed_versions, missing = self.check_dependencies_installed()
-        
+
         lines = []
         if deps_met:
             lines.append(f"# ✅ All Python packages already installed for {self.name}")
@@ -246,18 +251,18 @@ class VectorDbConfig:
             lines.append("#")
             lines.append("# Or install/update all packages with:")
             lines.append(f"pip install -U {' '.join(self.pip_packages)}")
-        
+
         return "\n".join(lines)
-    
+
     def print_system_dependencies(self, os_type: OSType) -> str:
         """Generate system dependencies installation instructions."""
         lines = []
-        
+
         if not self.system_dependencies:
             return f"# No system dependencies required for {self.name}"
-        
+
         lines.append(f"# System dependencies for {self.name}")
-        
+
         if os_type == OSType.MACOS:
             lines.append("# Install with Homebrew:")
             for dep in self.system_dependencies:
@@ -270,26 +275,26 @@ class VectorDbConfig:
             lines.append("# Install system dependencies:")
             for dep in self.system_dependencies:
                 lines.append(f"# Download and install {dep}")
-        
+
         return "\n".join(lines)
-    
+
     def print_launch_service(self, os_type: OSType) -> str:
         """Generate service launch instructions."""
         lines = []
-        
+
         # Check if service is already running
         service_uri = self.check_service_running()
         if service_uri and isinstance(service_uri, str):
             lines.append(f"# ✅ Service already running at: {service_uri}")
             lines.append(f"# To restart or reconfigure, see instructions below:")
             lines.append("")
-        
+
         # Get OS-specific setup steps
         if os_type in self.setup_steps:
             for step in self.setup_steps[os_type]:
                 if step.optional and service_uri:
                     continue  # Skip optional steps if service is running
-                
+
                 lines.append(f"# {step.description}")
                 if step.note:
                     lines.append(f"# Note: {step.note}")
@@ -297,7 +302,7 @@ class VectorDbConfig:
                 for cmd in step.commands:
                     lines.append(cmd)
                 lines.append("")
-        
+
         # Environment variables
         if self.environment_vars:
             lines.append("# Environment variables:")
@@ -306,23 +311,25 @@ class VectorDbConfig:
                 if current_value:
                     lines.append(f"# ✅ {key} is already set")
                 else:
-                    lines.append(f"export {key}=\"{value}\"")
+                    lines.append(f'export {key}="{value}"')
             lines.append("")
-        
+
         return "\n".join(lines)
-    
+
     def print_status(self) -> str:
         """Print detailed status information for this database."""
         lines = []
         lines.append(f"Status for {self.name}")
         lines.append("=" * 40)
-        
+
         # LangChain module
         langchain_ok = self.check_langchain_available()
-        lines.append(f"LangChain module: {'✅ Available' if langchain_ok else '❌ Not installed'}")
+        lines.append(
+            f"LangChain module: {'✅ Available' if langchain_ok else '❌ Not installed'}"
+        )
         if self.langchain_module:
             lines.append(f"  Module: {self.langchain_module}")
-        
+
         # Dependencies
         deps_met, installed_versions, missing = self.check_dependencies_installed()
         if self.pip_packages:
@@ -340,7 +347,7 @@ class VectorDbConfig:
                     lines.append("  Missing:")
                     for pkg in missing:
                         lines.append(f"    • {pkg}")
-        
+
         # Service status
         service_uri = self.check_service_running()
         if service_uri and isinstance(service_uri, str):
@@ -351,23 +358,23 @@ class VectorDbConfig:
                 lines.append(f"  Expected port: {self.default_port}")
             if self.embedded_mode:
                 lines.append(f"  Note: Supports embedded mode (no server needed)")
-        
+
         # Overall readiness
         is_ready = langchain_ok and deps_met and (service_uri or self.embedded_mode)
         lines.append(f"\nOverall: {'✅ Ready to use' if is_ready else '❌ Not ready'}")
-        
+
         # URLs
         if self.documentation_url:
             lines.append(f"\nDocumentation: {self.documentation_url}")
         if self.installation_url:
             lines.append(f"Installation guide: {self.installation_url}")
-        
+
         return "\n".join(lines)
-    
+
     def print_full_installation(self, os_type: OSType) -> str:
         """Generate complete installation instructions."""
         sections = []
-        
+
         # Header
         sections.append(f"# Complete installation for {self.name}")
         sections.append(f"# OS: {os_type.value}")
@@ -376,40 +383,42 @@ class VectorDbConfig:
         if self.installation_url:
             sections.append(f"# Installation guide: {self.installation_url}")
         sections.append("")
-        
+
         # Python packages
         sections.append("# STEP 1: Python packages")
         sections.append("#" + "=" * 50)
         sections.append(self.print_pip_install())
         sections.append("")
-        
+
         # System dependencies
         if self.system_dependencies:
             sections.append("# STEP 2: System dependencies")
             sections.append("#" + "=" * 50)
             sections.append(self.print_system_dependencies(os_type))
             sections.append("")
-        
+
         # Launch service
-        sections.append(f"# STEP {3 if self.system_dependencies else 2}: Launch service")
+        sections.append(
+            f"# STEP {3 if self.system_dependencies else 2}: Launch service"
+        )
         sections.append("#" + "=" * 50)
         sections.append(self.print_launch_service(os_type))
-        
+
         # Verification
         sections.append("# VERIFICATION")
         sections.append("#" + "=" * 50)
         sections.append(self._get_verification_commands())
         sections.append("")
-        
+
         # Notes
         if self.post_install_notes:
             sections.append("# NOTES")
             sections.append("#" + "=" * 50)
             for note in self.post_install_notes:
                 sections.append(f"# • {note}")
-        
+
         return "\n".join(sections)
-    
+
     def _check_port(self, host: str, port: int, timeout: float = 2.0) -> bool:
         """Check if a port is open on a host."""
         try:
@@ -419,60 +428,66 @@ class VectorDbConfig:
                 return result == 0
         except Exception:
             return False
-    
+
     def _get_verification_commands(self) -> str:
         """Generate verification commands."""
         lines = []
-        
+
         # Check service
         service_uri = self.check_service_running()
         if service_uri and isinstance(service_uri, str):
             lines.append(f"# Service check: ✅ Running at {service_uri}")
         else:
             lines.append(f"# Service check: ❌ Not running")
-        
+
         # Python import test
         lines.append(f"# Test Python import:")
         if self.name == "qdrant":
-            lines.append('python -c "from qdrant_client import QdrantClient; print(\'✅ Import successful\')"')
+            lines.append(
+                "python -c \"from qdrant_client import QdrantClient; print('✅ Import successful')\""
+            )
         elif self.name == "chroma":
-            lines.append('python -c "import chromadb; print(\'✅ Import successful\')"')
+            lines.append("python -c \"import chromadb; print('✅ Import successful')\"")
         elif self.name == "mongodb_atlas":
-            lines.append('python -c "from pymongo import MongoClient; print(\'✅ Import successful\')"')
+            lines.append(
+                "python -c \"from pymongo import MongoClient; print('✅ Import successful')\""
+            )
         else:
             for package in self.pip_packages:
-                base_package = package.split('[')[0].replace('-', '_')
-                lines.append(f'python -c "import {base_package}; print(\'✅ {base_package} imported\')"')
-        
+                base_package = package.split("[")[0].replace("-", "_")
+                lines.append(
+                    f"python -c \"import {base_package}; print('✅ {base_package} imported')\""
+                )
+
         return "\n".join(lines)
 
 
 class VectorDbRegistry:
     """
     Registry for vector database configurations.
-    
+
     This class manages all registered vector database configurations and provides
     methods to discover, query, and manage them.
     """
-    
+
     def __init__(self):
         self._configs: dict[str, VectorDbConfig] = {}
         self._register_defaults()
-    
+
     def _register_defaults(self) -> None:
         """Register default vector database configurations."""
         # Qdrant
         self.register(self._create_qdrant_config())
-        
+
         # Chroma
         self.register(self._create_chroma_config())
-        
+
         # MongoDB Atlas
         self.register(self._create_mongodb_atlas_config())
-        
+
         # Register other databases with basic info
         self._register_basic_configs()
-    
+
     def _create_qdrant_config(self) -> VectorDbConfig:
         """Create Qdrant configuration."""
         return VectorDbConfig(
@@ -494,19 +509,19 @@ class VectorDbRegistry:
                             "docker run -d --name qdrant \\",
                             "  -p 6333:6333 -p 6334:6334 \\",
                             "  -v $(pwd)/qdrant_storage:/qdrant/storage:z \\",
-                            "  qdrant/qdrant"
+                            "  qdrant/qdrant",
                         ],
-                        note="Use 'docker stop qdrant' and 'docker start qdrant' to manage"
+                        note="Use 'docker stop qdrant' and 'docker start qdrant' to manage",
                     ),
                     InstallStep(
                         description="Alternative: Install binary directly",
                         commands=[
                             "# Install Qdrant binary",
                             "curl --proto '=https' --tlsv1.2 -sSf https://get.qdrant.io | sh",
-                            "./qdrant"
+                            "./qdrant",
                         ],
-                        optional=True
-                    )
+                        optional=True,
+                    ),
                 ],
                 OSType.LINUX: [
                     InstallStep(
@@ -517,8 +532,8 @@ class VectorDbRegistry:
                             "docker run -d --name qdrant \\",
                             "  -p 6333:6333 -p 6334:6334 \\",
                             "  -v $(pwd)/qdrant_storage:/qdrant/storage:z \\",
-                            "  qdrant/qdrant"
-                        ]
+                            "  qdrant/qdrant",
+                        ],
                     )
                 ],
                 OSType.WINDOWS: [
@@ -530,20 +545,21 @@ class VectorDbRegistry:
                             "docker run -d --name qdrant ^",
                             "  -p 6333:6333 -p 6334:6334 ^",
                             "  -v %cd%/qdrant_storage:/qdrant/storage:z ^",
-                            "  qdrant/qdrant"
-                        ]
+                            "  qdrant/qdrant",
+                        ],
                     )
-                ]
+                ],
             },
             post_install_notes=[
                 "Qdrant dashboard: http://localhost:6333/dashboard",
                 "API endpoint: http://localhost:6333",
-                "For cloud version: https://cloud.qdrant.io"
-            ]
+                "For cloud version: https://cloud.qdrant.io",
+            ],
         )
-    
+
     def _create_chroma_config(self) -> VectorDbConfig:
         """Create Chroma configuration."""
+
         def check_chroma_service():
             # Chroma can work embedded or as server
             if VectorDbConfig._check_port(None, "localhost", 8000):
@@ -551,10 +567,11 @@ class VectorDbRegistry:
             # Check if chromadb is installed for embedded mode
             try:
                 import chromadb
+
                 return "embedded://chroma"
             except ImportError:
                 return False
-        
+
         return VectorDbConfig(
             name="chroma",
             aliases={"Chroma", "chromadb"},
@@ -578,10 +595,10 @@ class VectorDbRegistry:
                             "docker run -d --name chroma -p 8000:8000 chromadb/chroma",
                             "",
                             "# Option 2: Python server",
-                            "# chroma run --host 0.0.0.0 --port 8000"
+                            "# chroma run --host 0.0.0.0 --port 8000",
                         ],
                         optional=True,
-                        note="Server mode optional. Embedded mode works after pip install."
+                        note="Server mode optional. Embedded mode works after pip install.",
                     )
                 ],
                 OSType.LINUX: [
@@ -591,9 +608,9 @@ class VectorDbRegistry:
                             "# Chroma works embedded after pip install",
                             "# For server mode:",
                             "docker pull chromadb/chroma",
-                            "docker run -d --name chroma -p 8000:8000 chromadb/chroma"
+                            "docker run -d --name chroma -p 8000:8000 chromadb/chroma",
                         ],
-                        optional=True
+                        optional=True,
                     )
                 ],
                 OSType.WINDOWS: [
@@ -603,20 +620,21 @@ class VectorDbRegistry:
                             "REM Chroma works embedded after pip install",
                             "REM For server mode:",
                             "docker pull chromadb/chroma",
-                            "docker run -d --name chroma -p 8000:8000 chromadb/chroma"
+                            "docker run -d --name chroma -p 8000:8000 chromadb/chroma",
                         ],
-                        optional=True
+                        optional=True,
                     )
-                ]
+                ],
             },
             post_install_notes=[
                 "Embedded mode: Works immediately after pip install",
-                "Server mode: Optional for distributed applications"
-            ]
+                "Server mode: Optional for distributed applications",
+            ],
         )
-    
+
     def _create_mongodb_atlas_config(self) -> VectorDbConfig:
         """Create MongoDB Atlas configuration."""
+
         def check_mongodb_service():
             uri = os.getenv("MONGODB_ATLAS_URI")
             if uri:
@@ -625,7 +643,7 @@ class VectorDbRegistry:
             if VectorDbConfig._check_port(None, "localhost", 27017):
                 return "mongodb://localhost:27017"
             return False
-        
+
         return VectorDbConfig(
             name="mongodb_atlas",
             aliases={"MongoDB Atlas", "mongodb", "mongo"},
@@ -649,8 +667,8 @@ class VectorDbRegistry:
                             "# 4. Whitelist IP (Network Access)",
                             "# 5. Get connection string (Connect button)",
                             "# 6. Set environment variable with your connection string:",
-                            "export MONGODB_ATLAS_URI='your-connection-string'"
-                        ]
+                            "export MONGODB_ATLAS_URI='your-connection-string'",
+                        ],
                     ),
                     InstallStep(
                         description="Local MongoDB (optional)",
@@ -658,11 +676,11 @@ class VectorDbRegistry:
                             "# For local development:",
                             "brew tap mongodb/brew",
                             "brew install mongodb-community",
-                            "brew services start mongodb-community"
+                            "brew services start mongodb-community",
                         ],
                         optional=True,
-                        note="Local MongoDB won't have Atlas Search features"
-                    )
+                        note="Local MongoDB won't have Atlas Search features",
+                    ),
                 ],
                 OSType.LINUX: [
                     InstallStep(
@@ -671,8 +689,8 @@ class VectorDbRegistry:
                             "# 1. Create account at https://cloud.mongodb.com",
                             "# 2. Create a free M0 cluster",
                             "# 3. Configure access and get connection string",
-                            "export MONGODB_ATLAS_URI='your-connection-string'"
-                        ]
+                            "export MONGODB_ATLAS_URI='your-connection-string'",
+                        ],
                     )
                 ],
                 OSType.WINDOWS: [
@@ -681,18 +699,18 @@ class VectorDbRegistry:
                         commands=[
                             "REM 1. Create account at https://cloud.mongodb.com",
                             "REM 2. Create cluster and configure access",
-                            "set MONGODB_ATLAS_URI=your-connection-string"
-                        ]
+                            "set MONGODB_ATLAS_URI=your-connection-string",
+                        ],
                     )
-                ]
+                ],
             },
             post_install_notes=[
                 "MongoDB Atlas is a cloud service",
                 "Free M0 tier available for testing",
-                "For vector search, create an Atlas Search index"
-            ]
+                "For vector search, create an Atlas Search index",
+            ],
         )
-    
+
     def _register_basic_configs(self) -> None:
         """Register other vector databases with basic configuration."""
         basic_configs = [
@@ -702,7 +720,7 @@ class VectorDbRegistry:
                 langchain_module="langchain_community.vectorstores.faiss",
                 pip_packages=["faiss-cpu"],  # or faiss-gpu
                 embedded_mode=True,
-                documentation_url="https://github.com/facebookresearch/faiss"
+                documentation_url="https://github.com/facebookresearch/faiss",
             ),
             VectorDbConfig(
                 name="pinecone",
@@ -711,7 +729,7 @@ class VectorDbRegistry:
                 pip_packages=["pinecone-client", "langchain-pinecone"],
                 cloud_service=True,
                 documentation_url="https://docs.pinecone.io/",
-                environment_vars={"PINECONE_API_KEY": "your-api-key"}
+                environment_vars={"PINECONE_API_KEY": "your-api-key"},
             ),
             VectorDbConfig(
                 name="weaviate",
@@ -719,7 +737,7 @@ class VectorDbRegistry:
                 langchain_module="langchain_community.vectorstores.weaviate",
                 pip_packages=["weaviate-client"],
                 default_port=8080,
-                documentation_url="https://weaviate.io/developers/weaviate"
+                documentation_url="https://weaviate.io/developers/weaviate",
             ),
             VectorDbConfig(
                 name="milvus",
@@ -727,7 +745,7 @@ class VectorDbRegistry:
                 langchain_module="langchain_community.vectorstores.milvus",
                 pip_packages=["pymilvus"],
                 default_port=19530,
-                documentation_url="https://milvus.io/docs"
+                documentation_url="https://milvus.io/docs",
             ),
             VectorDbConfig(
                 name="redis",
@@ -735,7 +753,7 @@ class VectorDbRegistry:
                 langchain_module="langchain_community.vectorstores.redis",
                 pip_packages=["redis"],
                 default_port=6379,
-                documentation_url="https://redis.io/docs/stack/search/reference/vectors/"
+                documentation_url="https://redis.io/docs/stack/search/reference/vectors/",
             ),
             VectorDbConfig(
                 name="elasticsearch",
@@ -743,7 +761,7 @@ class VectorDbRegistry:
                 langchain_module="langchain_community.vectorstores.elasticsearch",
                 pip_packages=["elasticsearch"],
                 default_port=9200,
-                documentation_url="https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html"
+                documentation_url="https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html",
             ),
             VectorDbConfig(
                 name="pgvector",
@@ -751,97 +769,101 @@ class VectorDbRegistry:
                 langchain_module="langchain_community.vectorstores.pgvector",
                 pip_packages=["psycopg2-binary", "pgvector"],
                 default_port=5432,
-                documentation_url="https://github.com/pgvector/pgvector"
+                documentation_url="https://github.com/pgvector/pgvector",
             ),
         ]
-        
+
         for config in basic_configs:
             self.register(config)
-    
+
     def register(self, config: VectorDbConfig, *, replace: bool = True) -> None:
         """
         Register a vector database configuration.
-        
+
         Args:
             config: VectorDbConfig instance to register
             replace: Whether to replace existing configuration
         """
         if not replace and config.name in self._configs:
             raise ValueError(f"Configuration for '{config.name}' already exists")
-        
+
         self._configs[config.name] = config
-    
+
     def get(self, name: str) -> VectorDbConfig | None:
         """
         Get configuration by name or alias.
-        
+
         Args:
             name: Name or alias of the vector database
-            
+
         Returns:
             VectorDbConfig if found, None otherwise
         """
         # Try direct name match
         if name in self._configs:
             return self._configs[name]
-        
+
         # Try lowercase
         lower_name = name.lower()
         if lower_name in self._configs:
             return self._configs[lower_name]
-        
+
         # Try aliases
         for config in self._configs.values():
-            if name in config.aliases or lower_name in {a.lower() for a in config.aliases}:
+            if name in config.aliases or lower_name in {
+                a.lower() for a in config.aliases
+            }:
                 return config
-        
+
         return None
-    
+
     def list_all(self) -> list[str]:
         """List all registered vector database names."""
         return list(self._configs.keys())
-    
+
     def discover_status(self) -> dict[str, dict[str, Any]]:
         """
         Discover status of all registered vector databases.
-        
+
         Returns:
             Dictionary mapping names to status information
         """
         results = {}
-        
+
         for name, config in self._configs.items():
             status = {
                 "langchain_available": config.check_langchain_available(),
                 "dependencies": {},
                 "service": None,
-                "metadata": config.get_metadata()
+                "metadata": config.get_metadata(),
             }
-            
+
             # Check dependencies
-            deps_met, installed_versions, missing = config.check_dependencies_installed()
+            deps_met, installed_versions, missing = (
+                config.check_dependencies_installed()
+            )
             status["dependencies"] = {
                 "all_met": deps_met,
                 "installed_versions": installed_versions,
-                "missing": missing
+                "missing": missing,
             }
-            
+
             # Check service
             service_result = config.check_service_running()
             if isinstance(service_result, str):
                 status["service"] = {"running": True, "uri": service_result}
             else:
                 status["service"] = {"running": False}
-            
+
             # Overall readiness
             status["is_ready"] = (
-                status["langchain_available"] and
-                status["dependencies"]["all_met"] and
-                (status["service"]["running"] or config.embedded_mode)
+                status["langchain_available"]
+                and status["dependencies"]["all_met"]
+                and (status["service"]["running"] or config.embedded_mode)
             )
-            
+
             results[name] = status
-        
+
         return results
 
 
@@ -863,53 +885,55 @@ def help_me_install(
     *,
     what: str = "all",  # "all", "pip", "system", "launch"
     copy_to_clipboard: bool = True,
-    print_instructions: bool = True
+    print_instructions: bool = True,
 ) -> str | None:
     """
     Generate installation instructions for a vector database.
-    
+
     Args:
         vectordb: Name or alias of the vector database
         what: What to install - "all", "pip", "system", or "launch"
         copy_to_clipboard: Copy instructions to clipboard if available
         print_instructions: Print instructions to console
-        
+
     Returns:
         Installation instructions as string, or None if not found
-        
+
     Example:
         >>> # Show available databases
         >>> help_me_install()  # doctest: +SKIP
-        
+
         >>> # Install everything for Qdrant
         >>> help_me_install("qdrant")  # doctest: +SKIP
-        
+
         >>> # Just show pip install for Chroma
         >>> help_me_install("chroma", what="pip")  # doctest: +SKIP
     """
     registry = VectorDbRegistry()
-    
+
     # Show available if no database specified
     if not vectordb:
         available = registry.list_all()
         print("Available vector databases:")
         for name in available:
             config = registry.get(name)
-            aliases = f" (aliases: {', '.join(config.aliases)})" if config.aliases else ""
+            aliases = (
+                f" (aliases: {', '.join(config.aliases)})" if config.aliases else ""
+            )
             print(f"  • {name}{aliases}")
         print(f"\nUsage: help_me_install('{available[0]}')")
         return None
-    
+
     # Get configuration
     config = registry.get(vectordb)
     if not config:
         print(f"❌ Unknown vector database: '{vectordb}'")
         print(f"Available: {', '.join(registry.list_all())}")
         return None
-    
+
     # Detect OS
     os_type = _detect_os()
-    
+
     # Generate instructions based on what's requested
     if what == "all":
         instructions = config.print_full_installation(os_type)
@@ -923,14 +947,14 @@ def help_me_install(
         print(f"❌ Invalid 'what' parameter: {what}")
         print("Valid options: 'all', 'pip', 'system', 'launch'")
         return None
-    
+
     # Print if requested
     if print_instructions:
         print(f"📦 Installation instructions for {config.name}")
         print("=" * 60)
         print(instructions)
         print("=" * 60)
-    
+
     # Copy to clipboard if requested
     if copy_to_clipboard and HAS_CLIPBOARD:
         try:
@@ -938,20 +962,20 @@ def help_me_install(
             print("\n✅ Instructions copied to clipboard!")
         except Exception as e:
             print(f"\n⚠️  Could not copy to clipboard: {e}")
-    
+
     return instructions
 
 
 def discover_vectordbs(*, detailed: bool = False) -> dict[str, dict[str, Any]]:
     """
     Discover status of all vector databases.
-    
+
     Args:
         detailed: Include detailed status information
-        
+
     Returns:
         Status dictionary for all databases
-        
+
     Example:
         >>> status = discover_vectordbs()
         >>> ready = [name for name, info in status.items() if info["is_ready"]]
@@ -963,17 +987,17 @@ def discover_vectordbs(*, detailed: bool = False) -> dict[str, dict[str, Any]]:
 def print_discovery_report() -> None:
     """
     Print a formatted discovery report of all vector databases.
-    
+
     Example:
         >>> print_discovery_report()  # doctest: +SKIP
     """
     status = discover_vectordbs(detailed=True)
-    
+
     ready = []
     needs_deps = []
     needs_service = []
     not_available = []
-    
+
     for name, info in status.items():
         if info["is_ready"]:
             ready.append(name)
@@ -983,10 +1007,10 @@ def print_discovery_report() -> None:
             needs_deps.append(name)
         else:
             not_available.append(name)
-    
+
     print("🔍 Vector Database Discovery Report")
     print("=" * 50)
-    
+
     if ready:
         print(f"\n✅ Ready to Use ({len(ready)}):")
         for name in ready:
@@ -995,14 +1019,14 @@ def print_discovery_report() -> None:
             if info["service"]["running"]:
                 service_info = f" at {info['service']['uri']}"
             print(f"  • {name}{service_info}")
-    
+
     if needs_deps:
         print(f"\n📦 Missing Dependencies ({len(needs_deps)}):")
         for name in needs_deps:
             info = status[name]
             missing = info["dependencies"]["missing"]
             print(f"  • {name}: pip install {' '.join(missing)}")
-    
+
     if needs_service:
         print(f"\n🚀 Service Not Running ({len(needs_service)}):")
         for name in needs_service:
@@ -1010,35 +1034,34 @@ def print_discovery_report() -> None:
             port = info["metadata"].get("default_port", "")
             port_info = f" (port {port})" if port else ""
             print(f"  • {name}{port_info}")
-    
+
     if not_available:
         print(f"\n❌ Not Available ({len(not_available)}):")
         for name in not_available:
             print(f"  • {name}: LangChain integration not installed")
-    
-    print(f"\nSummary: {len(ready)} ready, {len(needs_deps)} need deps, "
-          f"{len(needs_service)} need service, {len(not_available)} not available")
+
+    print(
+        f"\nSummary: {len(ready)} ready, {len(needs_deps)} need deps, "
+        f"{len(needs_service)} need service, {len(not_available)} not available"
+    )
 
 
 # CLI functions for argh
-def vectordb_cli(
-    vectordb: str | None = None,
-    command: str | None = None
-) -> None:
+def vectordb_cli(vectordb: str | None = None, command: str | None = None) -> None:
     """
     Vector database management CLI.
-    
+
     Args:
         vectordb: Name of the vector database (optional)
         command: Command to execute (optional)
-    
+
     Commands:
         status: Show detailed status
         pip: Show pip installation instructions
         system: Show system dependencies
         launch: Show service launch instructions
         all: Show complete installation (default)
-    
+
     Examples:
         python vectordb_manager.py              # Show discovery report
         python vectordb_manager.py list         # List all databases
@@ -1048,16 +1071,18 @@ def vectordb_cli(
         python vectordb_manager.py qdrant launch    # Launch instructions
     """
     registry = VectorDbRegistry()
-    
+
     # Special case: list command
     if vectordb == "list":
         print("Available vector databases:")
         for name in registry.list_all():
             config = registry.get(name)
-            aliases = f" (aliases: {', '.join(config.aliases)})" if config.aliases else ""
+            aliases = (
+                f" (aliases: {', '.join(config.aliases)})" if config.aliases else ""
+            )
             print(f"  • {name}{aliases}")
         return
-    
+
     # No vectordb specified - show discovery report
     if not vectordb:
         print_discovery_report()
@@ -1075,7 +1100,7 @@ def vectordb_cli(
         print("  python vectordb_manager.py chroma status")
         print("  python vectordb_manager.py mongodb_atlas pip")
         return
-    
+
     # Get the database config
     config = registry.get(vectordb)
     if not config:
@@ -1083,10 +1108,10 @@ def vectordb_cli(
         print(f"Available: {', '.join(registry.list_all())}")
         print("\nTry: python vectordb_manager.py list")
         return
-    
+
     # Detect OS for instructions
     os_type = _detect_os()
-    
+
     # Execute command
     if not command or command == "all":
         # Default: show full installation
@@ -1117,10 +1142,12 @@ def main():
     if HAS_ARGH:
         # Use argh for better CLI experience
         import argh
+
         argh.dispatch_command(vectordb_cli)
     else:
         # Fallback to simple sys.argv parsing
         import sys
+
         if len(sys.argv) == 1:
             vectordb_cli()
         elif len(sys.argv) == 2:

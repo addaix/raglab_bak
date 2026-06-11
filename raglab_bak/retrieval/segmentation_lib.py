@@ -1,4 +1,4 @@
-""" This module contains functions to segment a text into chunks of a maximum number of tokens. """
+"""This module contains functions to segment a text into chunks of a maximum number of tokens."""
 
 from config2py import config_getter
 import nltk

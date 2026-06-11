@@ -21,7 +21,7 @@ def mk_prompt_template_store(
     space="prompt_tests",
     store_kind="prompt_templates",
     data_dir=data_dir,
-    prepopulate_with_some_templates=True
+    prepopulate_with_some_templates=True,
 ):
     txt_filt = filt_iter.suffixes(".txt")
     txt = KeyCodecs.suffixed(".txt")
@@ -55,7 +55,6 @@ def _default_chat():
 
 
 class PromptDDE(StoreAccess):
-
     def __init__(self, store, chat=None):
         self.store = store
         self.chat = chat or _default_chat()

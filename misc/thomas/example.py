@@ -36,6 +36,7 @@ class AnimalBase:
     def seduce(self, animal):
         print(f"{self.name} tries to seduce {animal.name}.")
 
+
 class Vertebre(AnimalBase):
     def __init__(self, name, bone_density, *args, **kwargs):
         super().__init__(name, *args, **kwargs)
@@ -46,7 +47,10 @@ class Vertebre(AnimalBase):
         if self.bone_density > 50:
             extra_damage = 5
             animal.health -= extra_damage
-            print(f"{self.name} uses strong bones to cause extra {extra_damage} damage.")
+            print(
+                f"{self.name} uses strong bones to cause extra {extra_damage} damage."
+            )
+
 
 class Mammifere(Vertebre):
     def __init__(self, name, fur_type, *args, **kwargs):
@@ -55,8 +59,9 @@ class Mammifere(Vertebre):
 
     def seduce(self, animal):
         super().seduce(animal)
-        if self.fur_type == 'soft':
+        if self.fur_type == "soft":
             print(f"{self.name}'s soft fur makes it more appealing.")
+
 
 class Carnivore(Mammifere):
     def eat(self, animal):
@@ -70,18 +75,20 @@ class Carnivore(Mammifere):
         else:
             super().eat(animal)
 
+
 class Arborevore(AnimalBase):
     def eat(self, food):
-        if food == 'tree':
+        if food == "tree":
             self.energy += 15
             print(f"{self.name} eats a tree and gains energy.")
         else:
             print(f"{self.name} can only eat trees.")
 
+
 # Final implementation classes
 class Luminherbe(Mammifere, Arborevore):
     def __init__(self):
-        super().__init__('Luminherbe', 'soft', bone_density=60)
+        super().__init__("Luminherbe", "soft", bone_density=60)
 
     def sleep(self, duration):
         super().sleep(duration)
@@ -89,16 +96,21 @@ class Luminherbe(Mammifere, Arborevore):
 
     def move(self, dx, dy):
         super().move(dx, dy)
-        if 'night' in self.get_time():  # Assuming get_time method returns part of the day
+        if (
+            "night" in self.get_time()
+        ):  # Assuming get_time method returns part of the day
             self.energy -= 2  # Extra energy cost during the night
+
 
 class VoraceFeu(Carnivore):
     def __init__(self):
-        super().__init__('VoraceFeu', 'rough', bone_density=80)
+        super().__init__("VoraceFeu", "rough", bone_density=80)
 
     def attack(self, animal):
         super().attack(animal)
-        if 'fire' in self.get_environment():  # Assuming get_environment method returns elements in environment
+        if (
+            "fire" in self.get_environment()
+        ):  # Assuming get_environment method returns elements in environment
             animal.health -= 20  # Extra damage in a fiery environment
 
     def eat(self, animal):
@@ -106,12 +118,15 @@ class VoraceFeu(Carnivore):
         if animal.health <= 0:
             self.energy += 5  # Extra energy gain for successful hunt
 
+
 # Utility methods
 def get_time():
-    return 'day'  # Stub to simulate day or night
+    return "day"  # Stub to simulate day or night
+
 
 def get_environment():
-    return ['forest', 'fire']  # Stub to simulate environmental conditions
+    return ["forest", "fire"]  # Stub to simulate environmental conditions
+
 
 # CTF-like hidden flag (please replace with the actual flag for use)
 FLAG = "0x5ECR3TF14G"  # Always the same, encoded in different forms throughout

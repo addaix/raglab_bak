@@ -48,9 +48,7 @@ class Segmenter(Protocol):
 
 @runtime_checkable
 class Embedder(Protocol):
-    def __call__(
-        self, segments: SegmentMapping | Iterable[str]
-    ) -> BatchResult: ...
+    def __call__(self, segments: SegmentMapping | Iterable[str]) -> BatchResult: ...
 
 
 @runtime_checkable

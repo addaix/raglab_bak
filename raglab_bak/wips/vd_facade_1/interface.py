@@ -55,9 +55,7 @@ class VectorSearchEngine:
 
         self._vector_store.add_batch(segments)
 
-    def search(
-        self, query: str | Vector, k: int = 5, return_segments: bool = True
-    ):
+    def search(self, query: str | Vector, k: int = 5, return_segments: bool = True):
         results = self._vector_store.search(query, k)
         if return_segments and hasattr(self._vector_store, "segments"):
             return [
