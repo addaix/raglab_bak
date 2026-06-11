@@ -1,3 +1,5 @@
+"""HTTP service exposing prompt-pilote data backed by a SQL database (sqldol + py2http)."""
+
 from py2http.service import mk_app
 
 from sqlalchemy import engine_from_config, create_engine

@@ -1,3 +1,3 @@
 """A medley of tools to make RAG-based applications."""
 
-from raglab.util import LazyAccessor
+from raglab_bak.util import LazyAccessor

@@ -4,7 +4,7 @@ import pytest
 
 # Ensure package root is importable when tests run from this folder
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from raglab.wips.vd_facade_1.interface import VectorSearchEngine
+from raglab_bak.wips.vd_facade_1.interface import VectorSearchEngine
 
 
 def test_add_and_search_simple():

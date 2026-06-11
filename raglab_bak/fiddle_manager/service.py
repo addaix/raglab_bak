@@ -1,3 +1,5 @@
+"""Fiddle manager service: CRUD over per-user named objects, served over HTTP via py2http."""
+
 from stores.repos import RepoJson
 from py2http import mk_flat, run_app
 

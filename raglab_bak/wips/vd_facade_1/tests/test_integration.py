@@ -19,8 +19,8 @@ import os
 # Ensure package parent is importable when running tests from this folder
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from raglab.wips.vd_facade_1.interface import VectorSearchEngine
-from raglab.wips.vd_facade_1.registry import register_segmenter, register_embedder
+from raglab_bak.wips.vd_facade_1.interface import VectorSearchEngine
+from raglab_bak.wips.vd_facade_1.registry import register_segmenter, register_embedder
 
 
 def test_example_simple_usage():
@@ -52,8 +52,8 @@ def test_example_simple_usage():
     # Ensure package parent is importable when running tests from this folder
     sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-    from raglab.wips.vd_facade_1.interface import VectorSearchEngine
-    from raglab.wips.vd_facade_1.registry import register_segmenter, register_embedder
+    from raglab_bak.wips.vd_facade_1.interface import VectorSearchEngine
+    from raglab_bak.wips.vd_facade_1.registry import register_segmenter, register_embedder
 
 
     def test_example_simple_usage():
@@ -86,8 +86,8 @@ def test_example_simple_usage():
             # Ensure the package parent is importable when running tests from this folder
             sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-            from raglab.wips.vd_facade_1.interface import VectorSearchEngine
-            from raglab.wips.vd_facade_1.registry import register_segmenter, register_embedder
+            from raglab_bak.wips.vd_facade_1.interface import VectorSearchEngine
+            from raglab_bak.wips.vd_facade_1.registry import register_segmenter, register_embedder
 
 
 def test_example_simple_usage():

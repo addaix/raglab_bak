@@ -20,7 +20,7 @@ from epythet.config_parser import parse_config
 from pathlib import Path
 
 project, copyright, author, release, display_name = parse_config(
-    Path(__file__).absolute().parent.parent / 'setup.cfg'
+    Path(__file__).absolute().parent.parent / 'pyproject.toml'
 )
 
 # -- General configuration ---------------------------------------------------
