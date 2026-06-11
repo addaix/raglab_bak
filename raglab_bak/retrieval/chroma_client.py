@@ -1,3 +1,5 @@
+"""Client wrapper for connecting to a remote Chroma vector database."""
+
 import os
 import chromadb
 from chromadb.config import Settings

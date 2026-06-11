@@ -1,3 +1,5 @@
+"""Base repository abstractions over dol stores."""
+
 from stores import stores_util
 
 from dol import *
