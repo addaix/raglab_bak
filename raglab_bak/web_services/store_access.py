@@ -4,8 +4,8 @@ from functools import lru_cache
 from typing import Any
 from collections.abc import MutableMapping
 from dol import wrap_kvs
-from raglab.stores.simple_stores import mk_user_mall
-from raglab.util import StoreAccess
+from raglab_bak.stores.simple_stores import mk_user_mall
+from raglab_bak.util import StoreAccess
 
 
 DFLT_LRU_CACHE_SIZE = 128
@@ -22,8 +22,8 @@ def get_user_mall_mall(space) -> MutableMapping:
     return get_user_mall(space).store
 
 
-from raglab.util import local_stores_dir
-from raglab.stores.stores_util import mk_space_info_store
+from raglab_bak.util import local_stores_dir
+from raglab_bak.stores.stores_util import mk_space_info_store
 
 space_info_store = mk_space_info_store(local_stores_dir)
 

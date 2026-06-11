@@ -13,7 +13,7 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from meshed import DAG, code_to_dag
 import matplotlib.pyplot as plt
-from raglab.retrieval.lib_alexis import num_tokens
+from raglab_bak.retrieval.lib_alexis import num_tokens
 
 MAX_TOKENS = 8_000
 OPENAI_API_KEY = config_getter("OPENAI_API_KEY")

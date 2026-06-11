@@ -5,7 +5,7 @@ from i2 import Sig, AttributeMutableMapping
 from sqldol.base import SqlBaseKvReader
 from sqldol.stores import SqlDictReader, SqlDictStore
 
-from raglab.util import LazyAccessor
+from raglab_bak.util import LazyAccessor
 
 store_factories = AttributeMutableMapping(
     permissions=partial(

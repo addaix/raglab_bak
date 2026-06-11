@@ -1,12 +1,15 @@
-# raglab
+# raglab_bak
 
 Backend of a system to explore RAG operations.
 
-To install:	```pip install raglab```
+(Formerly published as `raglab`; renamed to `raglab_bak` — "raglab backend" — to
+free the `raglab` name for a new project. Import as `raglab_bak`.)
+
+To install:	```pip install raglab_bak```
 
 **IMPORTANT NOTE: This is work-in-progress and shouldn't be used, yet.**
 
-`raglab` is meant to be a medley of interoperable functionalities around retrieval 
+`raglab_bak` is meant to be a medley of interoperable functionalities around retrieval 
 (or "search") and generation (with LLMs).
 It's architecture is structured so that operations can be done in python, 
 at the command line, through a web service (or any OpenAPI language binders) or from a 

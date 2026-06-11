@@ -3,13 +3,13 @@
 from dataclasses import dataclass
 from functools import partial, lru_cache
 import os
-from raglab.stores.stores_util import (
+from raglab_bak.stores.stores_util import (
     mk_json_store,
     mk_text_store,
     mk_dill_store,
     spaces_dirname,
 )
-from raglab.util import local_stores_dir, IterableNamespace
+from raglab_bak.util import local_stores_dir, IterableNamespace
 
 DFLT_LRU_CACHE_SIZE = 128
 

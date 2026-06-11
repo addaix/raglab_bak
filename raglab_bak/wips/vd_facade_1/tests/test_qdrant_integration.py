@@ -5,7 +5,7 @@ import pytest
 # Ensure package parent is importable
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from raglab.wips.vd_facade_1 import langchain_integration
+from raglab_bak.wips.vd_facade_1 import langchain_integration
 
 LANGCHAIN_AVAILABLE = getattr(langchain_integration, 'LANGCHAIN_AVAILABLE', False)
 QDRANT_AVAILABLE = getattr(langchain_integration, 'QDRANT_AVAILABLE', False)
@@ -26,7 +26,7 @@ def test_qdrant_store_smoke():
     The Qdrant connection parameters are read from environment variables prefixed
     with `VD_FACADE_QDRANT_*` (host, port, collection, api key).
     """
-    from raglab.wips.vd_facade_1.interface import VectorSearchEngine
+    from raglab_bak.wips.vd_facade_1.interface import VectorSearchEngine
 
     # Use env overrides if present
     host = os.getenv('VD_FACADE_QDRANT_HOST', 'localhost')
