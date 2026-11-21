@@ -50,7 +50,7 @@ def mk_space_info_store(rootdir):
         os.makedirs(space_dirpath, exist_ok=True)
     s = wrap_kvs(
         DirReader(space_dirpath, max_levels=0),
-        obj_of_data=lambda x: _get_info_or_create_it(x.rootdir),
+        value_decoder=lambda x: _get_info_or_create_it(x.rootdir),
     )
     s = with_relative_paths(s)
     s = KeyCodecs.suffixed(os.path.sep)(s)
@@ -122,7 +122,7 @@ mk_pickle_store = partial(
 )
 
 # pickle is builtin, but fickle -- dill can serialize more things (lambdas, etc.)
-LocalDillStore = wrap_kvs(Files, data_of_obj=dill.dumps, obj_of_data=dill.loads)
+LocalDillStore = wrap_kvs(Files, value_encoder=dill.dumps, value_decoder=dill.loads)
 mk_dill_store = partial(
     mk_local_space_store, rootdir_to_local_store=LocalDillStore, filename_suffix=".dill"
 )

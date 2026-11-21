@@ -14,7 +14,7 @@ DFLT_LRU_CACHE_SIZE = 128
 @lru_cache(maxsize=DFLT_LRU_CACHE_SIZE)
 def get_user_mall(space: str) -> MutableMapping:
     mall = mk_user_mall(space)
-    _mall = wrap_kvs(mall, obj_of_data=StoreAccess)
+    _mall = wrap_kvs(mall, value_decoder=StoreAccess)
     return StoreAccess(_mall)
 
 
